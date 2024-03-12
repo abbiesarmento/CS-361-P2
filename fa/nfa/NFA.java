@@ -75,8 +75,38 @@ public class NFA implements NFAInterface {
 
     @Override
     public boolean accepts(String s) {
-        return false;
+        // Start from the e-closure of the start state
+        Set<NFAState> currentStates = eClosure(startState);
+
+        // Iterate over each character in the string
+        for (char c : s.toCharArray()) {
+            Set<NFAState> nextStates = new HashSet<>();
+
+            // Move to next states based on the current character
+            for (NFAState state : currentStates) {
+                Set<NFAState> statesForChar = getToState(state, c);
+                if (statesForChar != null) {
+                    for (NFAState nextState : statesForChar) {
+                        nextStates.addAll(eClosure(nextState)); // Include e-closure of next states
+                    }
+                }
+            }
+
+            // Update current states to the next states
+            currentStates = nextStates;
+        }
+
+        // Check if any of the current states is a final state
+        for (NFAState state : currentStates) {
+            if (isFinal(state.getName())) {
+                return true; // Accept if any final state is reached
+            }
+        }
+
+        return false; // Reject if no final state is reached
     }
+
+
 
     @Override
     public Set<Character> getSigma() {
@@ -122,7 +152,20 @@ public class NFA implements NFAInterface {
 
     @Override
     public Set<NFAState> getToState(NFAState from, char onSymb) {
-        return null;
+        Set<NFAState> result = new HashSet<>();
+
+        // Assume delta is structured correctly and contains transitions
+        if (delta.containsKey(from.getName()) && delta.get(from.getName()).containsKey(onSymb)) {
+            Set<String> targetStateNames = delta.get(from.getName()).get(onSymb);
+            for (String stateName : targetStateNames) {
+                NFAState state = getState(stateName);
+                if (state != null) {
+                    result.add(state);
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -155,7 +198,33 @@ public class NFA implements NFAInterface {
 
     @Override
     public int maxCopies(String s) {
-        return 0;
+        // Start with the initial state and its epsilon closure as the current states.
+        Set<NFAState> currentStates = new HashSet<>(eClosure(startState));
+        int maxCopies = currentStates.size();
+
+        for (int i = 0; i < s.length(); i++) {
+            char symbol = s.charAt(i);
+            Set<NFAState> nextStates = new HashSet<>();
+
+            for (NFAState state : currentStates) {
+                // For each state, find where you can go with the current symbol
+                Set<NFAState> transitions = getToState(state, symbol);
+                if (transitions != null) {
+                    for (NFAState nextState : transitions) {
+                        // Add all states reachable from nextState through epsilon closure
+                        nextStates.addAll(eClosure(nextState));
+                    }
+                }
+            }
+
+            // Update current states to be the next set of states
+            currentStates = nextStates;
+            // Update maxCopies if the number of states in this step is greater
+            maxCopies = Math.max(maxCopies, currentStates.size());
+        }
+
+        // Return the maximum number of NFA "copies" encountered, interpreted as the max breadth of parallel active states.
+        return maxCopies;
     }
 
     @Override
