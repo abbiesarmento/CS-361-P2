@@ -36,7 +36,7 @@ public class NFA implements NFAInterface {
     }
 
     @Override
-    public State getState(String name) {
+    public NFAState getState(String name) {
         return null;
     }
 
