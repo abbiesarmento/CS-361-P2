@@ -164,7 +164,6 @@ public class NFA implements NFAInterface {
                 }
             }
         }
-
         return result;
     }
 
