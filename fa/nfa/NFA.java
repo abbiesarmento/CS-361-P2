@@ -265,7 +265,7 @@ public class NFA implements NFAInterface {
     @Override
     public boolean isDFA() {
         // Check for ε transitions; presence of ε transitions means this is not a DFA
-        if (sigma.contains('e')) {
+        if (delta.containsKey('e')) {
             return false;
         }
 
@@ -285,7 +285,7 @@ public class NFA implements NFAInterface {
             }
 
             // Additionally, ensure there's a transition for each symbol in the alphabet for each state
-            if (seenSymbols.size() != sigma.size()) {
+            if (seenSymbols.size() != delta.size()) {
                 return false;
             }
         }
